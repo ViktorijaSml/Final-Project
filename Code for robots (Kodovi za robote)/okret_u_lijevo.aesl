@@ -1,0 +1,20 @@
+<!DOCTYPE aesl-source>
+<network>
+
+
+<!--list of global events-->
+
+
+<!--node USB Serial Device-->
+<node nodeId="{be048297-4e51-4f74-9f6f-c68ab654d559}" name="USB Serial Device"><![CDATA[#okret za 90 u lijevo
+
+timer.period[0] = 1302
+motor.right.target = 200
+motor.left.target = -200
+	
+onevent timer0
+motor.right.target = 200
+motor.left.target = 200]]></node>
+
+
+</network>

@@ -1,0 +1,47 @@
+<!DOCTYPE aesl-source>
+<network>
+
+
+<!--list of global events-->
+
+
+<!--node USB Serial Device-->
+<node name="USB Serial Device" nodeId="{98d3d11f-6b68-4b96-82e8-9c726220e69b}"><![CDATA[#varijable
+var min
+var max
+var srednja
+
+#funkcije
+sub go
+	motor.left.target = 200
+	motor.right.target = 200
+
+sub stop
+motor.left.target = 0 
+motor.right.target = 0
+
+#pokretanje i zaustavljanje robota (programa)
+onevent button.forward
+	callsub go
+
+onevent button.backward
+	callsub stop
+
+#upravljanje robotom
+onevent prox  #provjeri blizine
+	if motor.right.target != 0 then  #ako se robot giba
+		call math.stat( prox.horizontal[0:4], min, max, srednja) #izračunaj min, max i srednju vrijednost
+	when max > 0 do #ako je uočio blizinu nečeg
+		if prox.horizontal[0] > prox.horizontal[4] then #ako je previše ulijevo
+			motor.right.target = -200 # idi udesno
+		else # inače
+			motor.left.target = -200 #idi ulijevo
+			end
+		end
+	when max <= 0 do #kad se okrenio
+		callsub go #nastavi se gibati ravno
+	end
+end]]></node>
+
+
+</network>

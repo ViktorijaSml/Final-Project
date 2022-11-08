@@ -1,0 +1,56 @@
+<!DOCTYPE aesl-source>
+<network>
+
+
+<!--list of global events-->
+<constant name="GRANICA" value="2800"/>
+
+
+<!--node Thymio II 0 on DESKTOP-GT99TI0 - 21900-->
+<node name="Thymio II 0 on DESKTOP-GT99TI0 - 21900" nodeId="{50d92c29-0ee2-4da2-baef-38e35e966a9e}"><![CDATA[#varijable--------------------------------------------------------------------------------------------------------------------------------------------------------
+var minimum
+var maksimum
+var srednja
+
+#funkcije--------------------------------------------------------------------------------------------------------------------------------------------------------
+sub go																								 #"idi ravno"
+	motor.left.target = 200
+	motor.right.target = 200
+
+sub stop																			  			 	 #"zaustavi se"
+motor.left.target = 0 
+motor.right.target = 0
+
+sub ulijevo																							 #"okret ulijevo"
+motor.left.target = -150
+
+sub udesno																						 #"okret udesno"
+motor.right.target = -150
+
+#pokretanje i zaustavljanje robota (programa)------------------------------------------------------------------------------------------------------------
+onevent button.forward
+	callsub go
+
+onevent button.backward
+	callsub stop
+
+#upravljanje robotom-----------------------------------------------------------------------------------------------------------------------------------------
+onevent prox 																						  #provjeri blizine
+	if motor.right.target != 0 then  #ako se robot giba
+		call math.stat( prox.horizontal[0:4], minimum, maksimum, srednja) #izračunaj min, max i srednju vrijednost
+		
+	when maksimum > GRANICA do														  #ako je uočio blizinu 
+		if prox.horizontal[0] > prox.horizontal[4] then								  #ako je previše ulijevo
+			callsub udesno																		  # idi udesno
+		else  																							  # inače
+			callsub ulijevo																		  #idi ulijevo
+		end	
+	end
+	
+	when maksimum <= GRANICA do													  #kad se okrenio
+		callsub go																					  #nastavi se gibati ravno
+	end
+end]]></node>
+
+
+</network>

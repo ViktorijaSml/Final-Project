@@ -1,0 +1,132 @@
+<!DOCTYPE aesl-source>
+<network>
+
+
+<!--list of global events-->
+<constant value="300" name="CRNA_LINIJA"/>
+<constant value="1500" name="GRANICA"/>
+
+
+<!--node Thymio II 0 on DESKTOP-GT99TI0 - 13520-->
+<node nodeId="{37f7705e-6530-421c-b64f-53abd24e6084}" name="Thymio II 0 on DESKTOP-GT99TI0 - 13520"><![CDATA[#varijable-------------------------------------------------------------------------------------------------------------------------------------------------------
+var minimum             												 #|
+var maksimum														 #| namijenjeno za "okreti" varijablu	
+var srednja 															 #|
+
+var minimum1														 #|
+var maksimum1														 #| namijenjeno za varijablu svijetlosnih senzora
+var srednja1															 #|
+
+var minimum2														 #|
+var maksimum2														 #| namijenjeno za varijablu senzora za daljinu
+var srednja2															 #|
+
+var raskrizja[14]	 													 #varijabla svih raskrizja u koreografiji
+call math.fill(raskrizja,0)											 #punjenje varijable "raskrzija" nulama
+
+#incijalizacija---------------------------------------------------------------------------------------------------------------------------------------------------
+call leds.top(230,0,0)												 #postavljanje boja
+call leds.bottom.left(230,0,0)
+call leds.bottom.right(230,0,0)
+
+motor.left.target = 0												 #postavljanje početne brzine
+motor.right.target = 0
+
+#funkcije--------------------------------------------------------------------------------------------------------------------------------------------------------
+sub go																	 #"idi ravno" 
+	motor.left.target = 200
+	motor.right.target = 200
+
+sub stop																 #"zaustavi se"
+	motor.left.target = 0 
+	motor.right.target = 0
+
+sub ulijevo																 #"okret ulijevo"
+	motor.left.target = -200
+
+sub udesno															 #"okret u desno"
+	motor.right.target = -200
+
+#pokretanje i zaustavljanje robota (programa)------------------------------------------------------------------------------------------------------------
+onevent button.forward											 #na pritisak gornjeg gumba
+	callsub go															 #idi ravno
+
+onevent button.backward										 #na pritisak donjeg gumba
+	callsub stop														 #zaustavi se
+
+#upravljanje robotom-----------------------------------------------------------------------------------------------------------------------------------------
+onevent prox  														 #provjeri blizine
+	if motor.right.target != 0 then  							 #ako se robot giba
+		call math.stat( prox.ground.delta[0:1], minimum1, maksimum1, srednja1) #izračunaj min, max i srednju vrijednost svijetlosnih senzora
+		call math.stat( prox.ground.delta[0:1], minimum2, maksimum2, srednja2) #izračunaj min, max i srednju vrijednost senzora za daljinu
+
+#dio programa za praćenje linije------------------------
+	when maksimum1 > CRNA_LINIJA do 					 #ako je uočio svijetlost (makao se s linije)
+	
+		if  prox.ground.delta[0] >CRNA_LINIJA and prox.ground.delta[1]<= CRNA_LINIJA then #ako s lijeve strane svijetlo
+			callsub udesno											 #idi udesno
+		else 																 #inace
+			callsub ulijevo											 #idi ulijevo		
+		end
+	end
+	
+	when  maksimum1<= CRNA_LINIJA do					 #kad se okrene
+		callsub go														 #idi ravno
+	end
+    end
+    
+#dio programa za koreografiju robota-----------------
+	call math.stat(raskrizja, minimum, maksimum, srednja)#izračunaj min, max i srednju vrijedost varijable "okreti"
+	
+    if  minimum == 1 then										 #ako je najmanji broj u nizu "raskrizja" 1
+    	call math.fill(raskrizja,0)									 #znaci da je robot obavio koreografiju pa resetiraj varijablu
+   else																	 #inace
+   		when (prox.horizontal[0]<GRANICA or prox.horizontal[4]<GRANICA) and  maksimum2 < GRANICA and maksimum1<=CRNA_LINIJA do #kad uoci raskrizje
+   			if (raskrizja[0] == 0)then							 #|
+   				callsub go												 #|
+   				raskrizja[0] = 1										 #|
+   			elseif (raskrizja[1] == 0)then						 #|
+   				callsub ulijevo										 #|
+   				raskrizja[1] = 1										 #|
+   			elseif (raskrizja[2] == 0)then						 #|
+   				callsub udesno										 #| okreći se po koreografiji
+   				raskrizja[2] = 1										 #|
+   			elseif (raskrizja[3] == 0)then						 #|
+   				callsub go												 #|
+   				raskrizja[3] = 1										 #|
+   			elseif (raskrizja[4] == 0)then						 #|
+   				callsub udesno										 #|
+   				raskrizja[4] = 1										 #|
+   			elseif (raskrizja[5] == 0)then						 #|
+   				callsub go												 #|
+   				raskrizja[5] = 1										 #|
+   			elseif (raskrizja[6] == 0)then						 #|
+   				callsub udesno										 #|
+   				raskrizja[6] = 1										 #|   
+   			elseif (raskrizja[7] == 0)then						 #|
+   				callsub udesno										 #|
+   				raskrizja[7] = 1										 #|   		
+   			elseif (raskrizja[8] == 0)then						 #|
+   				callsub ulijevo										 #|
+   				raskrizja[8] = 1										 #|
+   			elseif (raskrizja[9] == 0)then						 #|
+   				callsub udesno										 #|
+   				raskrizja[9] = 1										 #|   			
+   			elseif (raskrizja[10] == 0)then						 #|
+   				callsub go												 #|
+   				raskrizja[10] = 1									 #|   			
+   			elseif (raskrizja[11] == 0)then						 #|
+   				callsub udesno										 #|
+   				raskrizja[11] = 1									 #|
+   			elseif (raskrizja[12] == 0)then						 #|
+   				callsub ulijevo										 #|
+   				raskrizja[12] = 1									 #|
+   			elseif (raskrizja[13] == 0)then						 #|
+   				callsub ulijevo										 #|
+   				raskrizja[13] = 1									 #|	   				   						   										
+   			end														
+   		end
+   end]]></node>
+
+
+</network>

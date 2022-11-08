@@ -1,0 +1,104 @@
+<!DOCTYPE aesl-source>
+<network>
+
+
+<!--list of global events-->
+<constant name="BRZINA" value="300"/>
+<constant name="CRNA_LINIJA" value="250"/>
+
+
+<!--node USB Serial Device-->
+<node name="USB Serial Device" nodeId="{b45f02c5-11a1-448a-84d0-15324dfd3d9c}"><![CDATA[#Pacman
+#varijable----------------------------------------------------------------------------------------------------------------------------------------------------
+var minimum															 #|
+var maksimum														 #| namijenjeno za varijablu svjetlosnihi senzora
+var srednja															 #|
+var minimum2														 #|
+var maksimum2														 #| namijenjeno za varijablu senzora na daljinu
+var srednja2															 #|
+
+call sound.play(0)
+timer.period[0] = 630
+motor.left.target = 0 
+motor.right.target = 0
+call leds.top(250,250,0)											 #postavljanje boja
+call leds.bottom.left(250,250,0)
+call leds.bottom.right(250,250,0)
+call prox.comm.enable(1)
+prox.comm.tx = 0
+
+#funkcije-----------------------------------------------------------------------------------------------------------------------------------------------------
+sub go																	 #"idi ravno"
+	motor.left.target = BRZINA
+	motor.right.target = BRZINA
+
+sub stop																 #"zaustavi se"
+	motor.left.target = 0 
+	motor.right.target = 0
+
+sub ulijevo																 #"okret ulijevo"
+	motor.left.target = -BRZINA
+	motor.right.target = 0
+
+
+sub udesno															 #"okret udesno"
+	motor.right.target = -BRZINA
+	motor.left.target = 0 
+
+
+sub unazad														   	 #"idi unazad"
+	motor.left.target = -BRZINA
+	motor.right.target = -BRZINA
+#zaustavljanje robota (programa)----------------------------------------------------------------------------------------------------------
+
+onevent button.backward										 #na pritisak donjeg gumba
+	callsub stop														 #zaustavi se
+
+#upravljanje robotom---------------------------------------------------------------------------------------------------------------------------------------
+onevent prox  														 #provjeri blizine
+	if motor.right.target != 0 then  							 #ako se robot giba		
+		call math.stat( prox.ground.delta[0:1], minimum, maksimum, srednja) #izračunaj min, max i srednju vrijednost svijetlosnih senzora
+		call math.stat( prox.horizontal[0:5], minimum2, maksimum2, srednja2) #izračunaj min, max i srednju vrijednost senzora na daljinu
+	
+	when  maksimum2 >= 3000 do
+		prox.comm.tx = 2 #upit "jesi li ti duh?"
+	end
+    end
+    
+onevent timer0 
+	if motor.right.target != 0 or motor.left.target != 0 then  							 #ako se robot giba		
+		call sound.play(1)
+		end
+	timer.period[0] = 630
+
+
+onevent rc5
+	if  rc5.command == 2 then
+			callsub go
+	
+	elseif rc5.command == 8 then	
+			callsub unazad
+			
+	elseif rc5.command == 4 then
+		callsub ulijevo	
+		
+	elseif rc5.command ==	6 then
+		callsub udesno	   
+		
+	elseif  rc5.command == 5 then
+		callsub stop
+		
+	end
+
+onevent prox.comm
+	if prox.comm.rx == 1 then#odgovor: "jesam"
+		prox.comm.tx =2
+		call leds.top(0,0,0)  
+    	call leds.bottom.left(0,0,0)
+		call leds.bottom.right(0,0,0)
+		call sound.play(7)
+		callsub stop
+	end		]]></node>
+
+
+</network>

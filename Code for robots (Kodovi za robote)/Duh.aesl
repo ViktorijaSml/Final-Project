@@ -1,0 +1,80 @@
+<!DOCTYPE aesl-source>
+<network>
+
+
+<!--list of global events-->
+<constant value="250" name="CRNA_LINIJA"/>
+
+
+<!--node USB Serial Device-->
+<node nodeId="{d2184d58-4d74-4116-94e7-7628659cf0bb}" name="USB Serial Device"><![CDATA[#Duh
+#varijable----------------------------------------------------------------------------------------------------------------------------------------------------
+var minimum															 #|
+var maksimum														 #| namijenjeno za varijablu svjetlosnihi senzora
+var srednja															 #|
+var minimum2														 #|
+var maksimum2														 #| namijenjeno za varijablu senzora na daljinu
+var srednja2															 #|
+
+#funkcije-----------------------------------------------------------------------------------------------------------------------------------------------------
+sub go																	 #"idi ravno"
+	motor.left.target = 300
+	motor.right.target = 300
+
+sub stop																 #"zaustavi se"
+	motor.left.target = 0 
+	motor.right.target = 0
+	call prox.comm.enable(0)
+
+
+sub ulijevo																 #"okret ulijevo"
+	motor.left.target = -300
+
+sub udesno															 #"okret udesno"
+	motor.right.target = -300
+
+#pokretanje i zaustavljanje robota (programa)----------------------------------------------------------------------------------------------------------
+onevent button.forward											 #na pritisak gornjeg gumba
+	call leds.top(0,0,230)												 #postavljanje boja
+	call leds.bottom.left(0,0,230)
+	call leds.bottom.right(0,0,230)
+	call prox.comm.enable(1)
+	prox.comm.tx = 0
+	callsub go															 #idi ravno
+
+onevent button.backward										 #na pritisak donjeg gumba
+	callsub stop														 #zaustavi se
+
+#upravljanje robotom---------------------------------------------------------------------------------------------------------------------------------------
+onevent prox  														 #provjeri blizine
+	if motor.right.target != 0 then  							 #ako se robot giba		
+		call math.stat( prox.ground.delta[0:1], minimum, maksimum, srednja) #izračunaj min, max i srednju vrijednost svijetlosnih senzora
+		call math.stat( prox.horizontal[0:5], minimum2, maksimum2, srednja2) #izračunaj min, max i srednju vrijednost senzora na daljinu
+
+
+		when maksimum > CRNA_LINIJA do 				 #ako je uočio svijetlost (makao se s linije)
+	
+		if  prox.ground.delta[0] >CRNA_LINIJA and prox.ground.delta[1]<= CRNA_LINIJA then #ako s lijeve strane svijetlo
+			callsub udesno											 #idi udesno
+		else 																 #inace
+			callsub ulijevo			 								 #idi ulijevo		
+		end
+	end
+	 
+	when  maksimum2 >= 3000 do
+		prox.comm.tx=1
+	end
+	
+	when  maksimum<= CRNA_LINIJA do					#kad se okrene
+		callsub go														#idi ravno
+	end
+    end
+ 
+onevent prox.comm
+	if prox.comm.rx == 2 then
+		prox.comm.tx=1
+		callsub stop
+	end	       ]]></node>
+
+
+</network>
